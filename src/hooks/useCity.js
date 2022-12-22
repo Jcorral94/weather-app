@@ -1,7 +1,7 @@
 import API from "../lib/API.js";
-import { reactive, watch, ref } from "vue";
+import { reactive, watch } from "vue";
 
-function useWeather(city) {
+function useCity(city) {
 
   const data = reactive({
     results: {},
@@ -15,7 +15,8 @@ function useWeather(city) {
       data.results = {};
       data.error = null;
 
-      const results = await API.getWeather({ city });
+      const results = await API.getCity({ city });
+      // console.log(`Get City:: ${JSON.stringify(results)}`);
       // TODO: 
       // get the lat & long from results
       // make a new request to : https://api.open-meteo.com/v1/forecast?latitude=33.44&longitude=-112.36&hourly=temperature_2m,relativehumidity_2m,apparent_temperature,visibility,winddirection_180m,windgusts_10m&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph&past_days=5
@@ -32,5 +33,5 @@ function useWeather(city) {
 }
 
 export {
-  useWeather
+  useCity
 }
