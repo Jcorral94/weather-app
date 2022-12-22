@@ -7,7 +7,7 @@ const selectedCity = useCity(city);
 
 function getCity() {
   // TODO: Once we click a div get the lat and long & make request to weather
-  // FYI - makes a request to state after 4 letters to compile city list
+  // FYI - makes a request to state after 4 letters to compile city list limit spamming API
   console.log(selectedCity.results);
 }
 </script>
@@ -53,7 +53,7 @@ label {
 .cities {
   width: 100%;
   padding: 5px;
-  transition: 0.5s all;
+  transition: 0.2s all;
 }
 
 #city {
