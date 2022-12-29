@@ -1,23 +1,29 @@
 <script setup>
 import { ref } from "vue";
-import { useCity } from "../hooks/useCity.js";
-import API from "../lib/API.js";
+import useCity from "../hooks/useCity";
+import API from "../lib/API";
+import weatherCode from "../lib/weatherCode";
 
-const city = ref(null);
-const selectedCity = useCity(city);
-const clickedDropDown = ref(false);
+const city = ref('');
+const weatherImage = ref(-1);
 
-/* Current problem: When I select the city with the state it updates the input. and when running autocomplete no results are retrieved when change */
-
-/* TODO: turn this into a state variable and create API Request */
 const searchResults = ref(null);
 const weather = ref(null);
+const selectedCity = useCity(city);
+
 
 async function updateSearchResults() {
   //grab the cache, assume once we click on the auto-complete that it will fail to find the right city
   searchResults.value = selectedCity.cache[city.value];
   //get the weather for that lat and long
   weather.value = await API.getWeather({lat: searchResults.value.latitude, long: searchResults.value.longitude});
+
+  //get the current weather code to get image
+
+  if(weatherCode.has(weather.value.current_weather.weathercode)){
+
+    weatherImage.value = weatherCode.get(weather.value.current_weather.weathercode);
+  }
 
 }
 </script>
@@ -26,7 +32,7 @@ async function updateSearchResults() {
   <!-- Todo: Fix the city list. It's not centered with the input -->
   <div class="weather">
     <div class="header">
-      <h2>Weather App</h2>
+      <h1 class="display-4 fw-normal">Weather App</h1>
     </div>
     <div class="container">
       <div class="form-floating">
@@ -58,6 +64,9 @@ async function updateSearchResults() {
 
     <div v-if="weather">
       <div class="current-weather"> {{ weather.current_weather.temperature }}</div>
+      <div class="current-weather-image">
+        <img :src=" './src/assets/weather-icons/' + weatherImage +'.jpeg'" alt="Weather image">
+      </div>
     </div>
 <!-- 
     <pre>
@@ -67,7 +76,10 @@ async function updateSearchResults() {
 </template>
 
 
-<style scoped>
+<style>
+*{
+  font-family: Monaco;
+}
 label {
   padding: 5px;
 }
@@ -75,11 +87,24 @@ p {
   width: 100%;
   height: 100%;
 }
-
+img{
+  width: 12rem;
+  height: 10rem;
+  filter: grayscale(100%);
+}
 .cities:hover {
   color: #0d6efd;
   text-decoration: dashed;
   cursor: pointer;
+}
+h1{
+  color: rgb(44, 42, 42);
+  padding: 10px;
+  text-align: center;
+}
+
+.btn-primary{
+  
 }
 
 .cities {

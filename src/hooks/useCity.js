@@ -1,7 +1,7 @@
 import API from "../lib/API.js";
 import { reactive, watch } from "vue";
 
-function useCity(city) {
+export default function useCity(city) {
 
   const data = reactive({
     results: {},
@@ -18,10 +18,12 @@ function useCity(city) {
 
       const fin = await API.getCity({ city: city.value });
 
+      if(!fin) return;
+
       data.results = fin;
 
-      //have to handle autocomplete update
-      //TODO: come up with a better solution
+      // When using autocomplete the value for the input changes and because api is using 
+      // city and the input value changes to city state we lose visibility
 
       if (data.results) {
         data.cache = data.results;
@@ -43,8 +45,4 @@ function useCity(city) {
   watch(city, getCity, { immediate: true });
 
   return data;
-}
-
-export {
-  useCity
 }
