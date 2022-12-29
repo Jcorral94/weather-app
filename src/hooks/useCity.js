@@ -5,6 +5,7 @@ function useCity(city) {
 
   const data = reactive({
     results: {},
+    cache: {},
     error: null,
     loading: true
   });
@@ -15,12 +16,28 @@ function useCity(city) {
       data.results = {};
       data.error = null;
 
-      data.results = await API.getCity({ city: city.value });
-      
+      const fin = await API.getCity({ city: city.value });
+
+      data.results = fin;
+
+      //have to handle autocomplete update
+      //TODO: come up with a better solution
+
+      if (data.results) {
+        data.cache = data.results;
+      } else {
+        data.cache = data.cache;
+      }
+
+
+
     } catch (e) {
       data.error = e;
+    } finally {
+      if (data.results !== null) {
+        data.loading = false;
+      }
     }
-    data.loading = false;
   }
 
   watch(city, getCity, { immediate: true });
