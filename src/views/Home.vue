@@ -9,29 +9,33 @@ const searchResults = ref(null);
 const weather = ref(null);
 const selectedCity = useCity(city);
 
+// TODO: Add a line graph mapping out the trend over the days
+// TODO:
+
+// current weather image
 const weatherImage = reactive({
   id: null,
   value: "",
-  fileType: ""
+  fileType: "",
 });
 
-const updatedWeather = computed(()=> {
+const updatedWeather = computed(() => {
   // i want an {} in an array with the data on an hourly basis
   const acc = [];
   const hourlyData = weather.value.hourly;
-  
+
   //create a foor loop on one of the properties and then extract the rest
 
-  hourlyData.time.forEach((value, index)=>{
+  hourlyData.time.forEach((value, index) => {
     acc.push({
-      time: value
-      , temperature_2m: hourlyData.temperature_2m[index]
-      , relativehumidity_2m: hourlyData.relativehumidity_2m[index]
-      , apparent_temperature: hourlyData.apparent_temperature[index]
-      , visibility: hourlyData.visibility[index]
-      , winddirection_180m: hourlyData.winddirection_180m[index]
-      , windgusts_10m: hourlyData.windgusts_10m[index]
-      , weathercode: hourlyData.weathercode[index]
+      time: value,
+      temperature_2m: hourlyData.temperature_2m[index],
+      relativehumidity_2m: hourlyData.relativehumidity_2m[index],
+      apparent_temperature: hourlyData.apparent_temperature[index],
+      visibility: hourlyData.visibility[index],
+      winddirection_180m: hourlyData.winddirection_180m[index],
+      windgusts_10m: hourlyData.windgusts_10m[index],
+      weathercode: hourlyData.weathercode[index],
     });
   });
 
@@ -52,29 +56,34 @@ async function updateSearchResults() {
 
   const doesImageExist = weatherCode.has(imgId);
 
+  //we need a default image to prevent this from stopping if not image is found
   if (!doesImageExist) return;
 
-    weatherImage.value = weatherCode.get(imgId);
+  weatherImage.value = weatherCode.get(imgId);
 
-    const hasFileType = weatherImage.value.indexOf(".");
-    
-    if(hasFileType >= 0) {
-      weatherImage.fileType = weatherImage.value.slice(hasFileType + 1, weatherImage.value.length);
-      weatherImage.value = weatherImage.value.slice(0, hasFileType);
-    } else {
-      weatherImage.fileType = "jpeg";
-    }
+  const hasFileType = weatherImage.value.indexOf(".");
 
-    //update the weather
-    console.log(weather.value);
+  if (hasFileType >= 0) {
+    weatherImage.fileType = weatherImage.value.slice(
+      hasFileType + 1,
+      weatherImage.value.length
+    );
+    weatherImage.value = weatherImage.value.slice(0, hasFileType);
+  } else {
+    weatherImage.fileType = "jpeg";
+  }
+
+  //update the weather
+  console.log(weather.value);
 }
 </script>
 
 <template>
-  <!-- Todo: Fix the city list. It's not centered with the input -->
+  <!-- TODO: Turn this into its own Weather Component -->
+  <!-- Takes City as an argument -->
   <main class="weather">
     <header class="header">
-      <h1 class="display-4 fw-normal">Weather App</h1>
+      <h4 class="display-6 fw-normal">Weather App</h4>
     </header>
     <section class="form">
       <form class="container" @submit.prevent="">
@@ -108,12 +117,18 @@ async function updateSearchResults() {
     <section v-if="weather" class="results">
       <article class="current-weather">
         <div class="degrees-and-image">
+          <div class="current-weather-text">Current Weather</div>
           <div class="current-degrees">
-            {{ weather.current_weather.temperature }}
+            {{ weather.current_weather.temperature }}&deg;F
           </div>
           <div class="current-weather-image">
             <img
-              :src="'./src/assets/weather-icons/' + weatherImage.value + '.' + weatherImage.fileType"
+              :src="
+                './src/assets/weather-icons/' +
+                weatherImage.value +
+                '.' +
+                weatherImage.fileType
+              "
               alt="Weather image"
             />
           </div>
@@ -127,35 +142,33 @@ async function updateSearchResults() {
           </div>
         </div>
       </article>
-      <article class="hourly-trend" v-if="updatedWeather">
-        <table>
-          <thead>
+      <article class="hourly-trend table-responsive" v-if="updatedWeather">
+        <table class="table table-striped">
+          <thead class="thead-light">
             <tr>
-              <th>
-                Time
-              </th>
-              <th>
-                Temperature
-              </th>
-              <th>
-                Humidity
-              </th>
-              <th>
-                Apparent Temperature
-              </th>
-              <th>
-                Visibility
-              </th>
-              <th>
-                Weather Code
-              </th>
-              <th>
-                Wind Direction
-              </th>
+              <th>Time</th>
+              <th>Temperature</th>
+              <th>Humidity</th>
+              <th>Apparent Temperature</th>
+              <th>Visibility</th>
+              <th>Weather Code</th>
+              <th>Wind Direction</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="{ id, temperature_2m, relativehumidity_2m, apparent_temperature, time, visibility, weathercode, winddirection_180m } in updatedWeather" :key="id">
+            <tr
+              v-for="{
+                id,
+                temperature_2m,
+                relativehumidity_2m,
+                apparent_temperature,
+                time,
+                visibility,
+                weathercode,
+                winddirection_180m,
+              } in updatedWeather"
+              :key="id"
+            >
               <td class="sub-section time">
                 {{ time }}
               </td>
@@ -163,7 +176,7 @@ async function updateSearchResults() {
                 {{ temperature_2m }}
               </td>
               <td class="sub-section humidity">
-              {{ relativehumidity_2m }}
+                {{ relativehumidity_2m }}
               </td>
               <td class="sub-section apparent">
                 {{ apparent_temperature }}
@@ -180,8 +193,7 @@ async function updateSearchResults() {
             </tr>
           </tbody>
         </table>
-        <div class="hourData" >
-        </div>
+        <div class="hourData"></div>
       </article>
     </section>
     <!-- 
@@ -195,45 +207,66 @@ async function updateSearchResults() {
 <style>
 * {
   font-family: Monaco;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+.current-weather-text {
+  font-size: 10px;
+}
+table tr td {
+  font-size: 12px;
+}
+table tr th {
+  font-size: 14px;
+}
+.container,
+.results,
+header {
+  background-color: white;
+  border-radius: 5px;
+}
+.container,
+.results {
+  margin-top: 10px;
+  padding: 20px;
+  border: 1px solid #e7eaec;
+}
+body {
+  background-color: #f7f7f9 !important;
+}
+main {
+  width: 100%;
 }
 
-.degrees-and-image, .other-elements{
+.degrees-and-image,
+.other-elements {
   padding: 40px;
   width: 50%;
 }
-.other-elements{
+.other-elements {
   font-size: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
-.hourData{
+.hourData {
   padding: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-.hourly-trend{
-  width: 90%;
-}
-td {
-  padding: 5px;
+.current-weather-sub {
   text-align: center;
 }
-table{
-  width: 100%;
+.hourly-trend {
+  width: 90%;
+  padding: 10px;
 }
 
-thead tr th, tbody tr td{
-  border: 1px solid rgb(236, 239, 243);
-}
-thead tr th {
-  padding: 15px;
-}
-
-tbody tr td{
-  font-family: 12px;
-}
-
-.degrees-and-image{
-  display:flex;
+.degrees-and-image {
+  display: flex;
   justify-content: space-around;
   align-items: center;
   flex-direction: column;
@@ -242,19 +275,20 @@ tbody tr td{
   border-right: 1px solid rgb(236, 239, 243);
   font-size: 30px;
 }
-.current-weather{
-  display:flex;
+.current-weather {
+  display: flex;
   justify-content: flex-start;
   align-items: center;
   flex-direction: row;
   width: 100%;
 }
-.results{
-  display:flex;
+.results {
+  display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  width: 100%;
+  width: 80%;
+  margin: 10px auto;
 }
 label {
   padding: 5px;
@@ -273,12 +307,11 @@ img {
   text-decoration: dashed;
   cursor: pointer;
 }
-h1 {
+h4 {
   color: rgb(44, 42, 42);
   padding: 10px;
   text-align: center;
 }
-
 
 .cities {
   width: 100%;
@@ -304,6 +337,6 @@ h1 {
   /* border: 1px solid #f1f1f1; */
 }
 .container {
-  margin-left: 63px;
+  width: 80% !important;
 }
 </style>
