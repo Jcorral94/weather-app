@@ -1,8 +1,8 @@
 export default new Map([
   [0, 'clear-sky'],
-  [1, 'partly-cloud'],
-  [2, 'partly-cloud'],
-  [3, 'partly-cloud'],
+  [1, 'partly-cloud.png'],
+  [2, 'partly-cloud.png'],
+  [3, 'partly-cloud.png'],
   [45, 'fog'],
   [48, 'fog'],
   [51, 'drizzle'],
