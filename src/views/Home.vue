@@ -1,16 +1,16 @@
 <script setup>
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import useCity from "../hooks/useCity";
 import API from "../lib/API";
 import weatherCode from "../lib/weatherCode";
 
 const city = ref("");
+const errors = ref([]);
 const searchResults = ref(null);
 const weather = ref(null);
 const selectedCity = useCity(city);
 
 // TODO: Add a line graph mapping out the trend over the days
-// TODO:
 
 // current weather image
 const weatherImage = reactive({
@@ -42,16 +42,35 @@ const updatedWeather = computed(() => {
   return acc;
 });
 
-async function updateSearchResults() {
-  //grab the cache, assume once we click on the auto-complete that it will fail to find the right city
-  searchResults.value = selectedCity.cache[city.value];
-  //get the weather for that lat and long
-  weather.value = await API.getWeather({
-    lat: searchResults.value.latitude,
-    long: searchResults.value.longitude,
-  });
+onMounted(() => {
+  //get the current location
+  try {
+    navigator.geolocation.getCurrentPosition(success, failed);
+  } catch (error) {
+    errors.value.push(error);
+  }
+});
 
-  //get the current weather code to get image
+// TODO: Move to seperate file helpers
+async function success(data) {
+  const {longitude, latitude} = data.coords;
+  await setWeather({latitude, longitude});
+}
+
+function failed(){
+  errors.value.push('Failed to get Geolocation... Enable geolocation or try searching for your a city.');
+}
+
+//end of helpers
+
+async function setWeather({ latitude, longitude }) {
+
+  errors.value = [];
+
+  weather.value = await API.getWeather({
+    lat: latitude,
+    long: longitude,
+  });
   const imgId = weather.value.current_weather.weathercode;
 
   const doesImageExist = weatherCode.has(imgId);
@@ -72,9 +91,18 @@ async function updateSearchResults() {
   } else {
     weatherImage.fileType = "jpeg";
   }
+}
 
-  //update the weather
-  console.log(weather.value);
+async function searchUpdate() {
+  //grab the cache, assume once we click on the auto-complete that it will fail to find the right city
+  searchResults.value = selectedCity.cache[city.value];
+  //get the weather for that lat and long
+
+  await setWeather({
+    latitude: searchResults.value.latitude,
+    longitude: searchResults.value.longitude,
+  });
+  //get the current weather code to get image
 }
 </script>
 
@@ -82,11 +110,16 @@ async function updateSearchResults() {
   <!-- TODO: Turn this into its own Weather Component -->
   <!-- Takes City as an argument -->
   <main class="weather">
-    <header class="header">
+    <header class="shadow-sm rounded">
       <h4 class="display-6 fw-normal">Weather App</h4>
     </header>
     <section class="form">
-      <form class="container" @submit.prevent="">
+      <div class="errors" v-if="errors.length > 0">
+        <div v-for="error in errors" :key="error.id">
+          {{ error }}
+        </div>
+      </div>
+      <form class="container shadow-sm" @submit.prevent="">
         <div class="form-floating">
           <input
             type="text"
@@ -99,9 +132,7 @@ async function updateSearchResults() {
           <label for="floatingInput">Enter a city</label>
         </div>
         <div class="mt-2">
-          <button @click="updateSearchResults" class="btn btn-primary">
-            Submit
-          </button>
+          <button @click="searchUpdate" class="btn btn-primary">Submit</button>
         </div>
         <div>
           <datalist id="datalistOptions">
@@ -114,6 +145,9 @@ async function updateSearchResults() {
         </div>
       </form>
     </section>
+    <article>
+        {{ selectedCity.loading }}
+      </article>
     <section v-if="weather" class="results">
       <article class="current-weather">
         <div class="degrees-and-image">
@@ -193,13 +227,9 @@ async function updateSearchResults() {
             </tr>
           </tbody>
         </table>
-        <div class="hourData"></div>
+        <!-- <div class="hourData"></div> -->
       </article>
     </section>
-    <!-- 
-    <pre>
-      {{ JSON.stringify(weather, null, 2) }}
-    </pre> -->
   </main>
 </template>
 
@@ -213,6 +243,14 @@ async function updateSearchResults() {
 }
 .current-weather-text {
   font-size: 10px;
+}
+.errors{
+  padding: 10px;
+  background-color: tomato;
+  color: white;
+  width: 70%;
+  margin: 5px auto;
+  border-radius: 5px;
 }
 table tr td {
   font-size: 12px;

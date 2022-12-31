@@ -8,3 +8,4 @@
 * [] - Create a component for weather data
 * [] - Bug - auto complete recommends history & can lead to no data being returned
 * [] - Add a chart with the trend by day of forcasted temp
+* [] - use navigator.geolocation.getCurrentPosition for default
